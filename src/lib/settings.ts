@@ -1,12 +1,12 @@
 /**
  * Centralized pricing and settings.
- * BOX_35 = 200 (default); BOX_50 / BOX_70 = TBD placeholders (set to numbers for now; admin can override per order).
+ * Admin can override price per order in manager.
  */
 
 export type ProductType = "BOX_35" | "BOX_50" | "BOX_70";
 
 export const DEFAULT_PRICES: Record<ProductType, number> = {
-  BOX_35: 200,
+  BOX_35: 280,
   BOX_50: 350, // TBD – admin can override per order
   BOX_70: 450, // TBD – admin can override per order
 };
