@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { BOX_OPTIONS } from "@/lib/products";
-import { getDefaultPrice } from "@/lib/settings";
+import { getDefaultPrice, getWhatsAppNumber, getWhatsAppContactUrl } from "@/lib/settings";
 import type { ProductType } from "@/lib/settings";
 import BoxImage from "@/components/BoxImage";
 
@@ -9,6 +9,9 @@ function productTypeFromPieces(pieces: number): ProductType {
 }
 
 export default function HomePage() {
+  const whatsappNumber = getWhatsAppNumber();
+  const contactHref = getWhatsAppContactUrl(whatsappNumber, "שלום אמא במשרד, אשמח לפרטים");
+
   return (
     <div className="min-h-screen">
       {/* Header */}
@@ -19,6 +22,16 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto flex flex-col items-center text-center">
           <h1 className="text-4xl md:text-5xl font-bold">אמא במשרד</h1>
           <p className="mt-1 text-xl" style={{ color: "#e8dcc8" }}>הטעם של הבית במשרד</p>
+          <a
+            href={contactHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-white bg-[#25D366] hover:bg-[#20bd5a] transition-colors"
+            title={whatsappNumber ? "צור קשר בוואטסאפ" : "מספר וואטסאפ יוגדר בהמשך"}
+          >
+            <span aria-hidden>📱</span>
+            צור קשר
+          </a>
         </div>
       </header>
 
