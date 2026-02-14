@@ -36,7 +36,7 @@ export interface Order {
   deliveryDate: string;
   notes?: string;
   createdAt: string;
-  status: "new" | "confirmed" | "delivered";
+  status: "new" | "confirmed" | "delivered" | "cancelled";
   attachments?: OrderAttachment[];
 }
 

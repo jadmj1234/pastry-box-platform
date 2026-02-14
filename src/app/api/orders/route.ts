@@ -112,7 +112,7 @@ export async function PATCH(request: NextRequest) {
 
     const updates: Parameters<typeof updateOrder>[1] = {};
     if (status !== undefined) {
-      if (!["new", "confirmed", "delivered"].includes(status)) {
+      if (!["new", "confirmed", "delivered", "cancelled"].includes(status)) {
         return NextResponse.json({ error: "Invalid status" }, { status: 400 });
       }
       updates.status = status;

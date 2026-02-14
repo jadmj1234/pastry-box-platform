@@ -10,6 +10,7 @@ const STATUS_LABELS_EXCEL: Record<Order["status"], string> = {
   new: "חדש",
   confirmed: "אושר",
   delivered: "נמסר",
+  cancelled: "בוטל",
 };
 
 const ATTACHMENT_TYPE_LABELS: Record<AttachmentType, string> = {
@@ -158,7 +159,9 @@ function OrderCard({
                   ? "bg-[#ff4c4c] border-[#ff4c4c]"
                   : statusSelect === "confirmed"
                     ? "bg-blue-600 border-blue-600"
-                    : "bg-green-600 border-green-600"
+                    : statusSelect === "delivered"
+                      ? "bg-green-600 border-green-600"
+                      : "bg-gray-600 border-gray-600"
               }`}
               onChange={(e) => {
                 const newStatus = e.target.value as Order["status"];
@@ -173,7 +176,12 @@ function OrderCard({
                   setStatusSelect(order.status);
                   return;
                 }
-                if (newStatus === "confirmed" || newStatus === "delivered") {
+                if (newStatus === "cancelled") {
+                  if (!window.confirm("לבטל את ההזמנה?\n\nההזמנה תעבור לרשימת הבוטלים.")) {
+                    setStatusSelect(order.status);
+                    return;
+                  }
+                } else if (newStatus === "confirmed" || newStatus === "delivered") {
                   if (newStatus === "confirmed" && missingFiles) {
                     const missing =
                       !hasReceipt && !hasBit
@@ -204,10 +212,11 @@ function OrderCard({
                 setStatusSelect(newStatus);
                 updateStatus(order.id, newStatus);
               }}
-                          >
+            >
               <option value="new">חדש</option>
               <option value="confirmed">אושר</option>
               <option value="delivered">נמסר</option>
+              <option value="cancelled">בוטל</option>
             </select>
             <button
               type="button"
@@ -358,7 +367,8 @@ export default function ManagerPage() {
   const [showHistory, setShowHistory] = useState(false);
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"date" | "name" | "location">("date");
-  const [showStatus, setShowStatus] = useState<"all" | "new" | "confirmed" | "delivered">("all");
+  const [showStatus, setShowStatus] = useState<"all" | "new" | "confirmed" | "delivered" | "cancelled">("all");
+  const [showCancelled, setShowCancelled] = useState(false);
   const [showProduct, setShowProduct] = useState<"all" | ProductType>("all");
   const [showReports, setShowReports] = useState(false);
   const [exportingExcel, setExportingExcel] = useState(false);
@@ -437,6 +447,7 @@ export default function ManagerPage() {
     new: orders.filter((o) => o.status === "new").length,
     confirmed: orders.filter((o) => o.status === "confirmed").length,
     delivered: orders.filter((o) => o.status === "delivered").length,
+    cancelled: orders.filter((o) => o.status === "cancelled").length,
   };
 
   const byCreatedAsc = (a: Order, b: Order) =>
@@ -484,14 +495,15 @@ export default function ManagerPage() {
     const ordersCountByProduct: Record<ProductType, number> = { BOX_35: 0, BOX_50: 0, BOX_70: 0 };
     const unitsByProduct: Record<ProductType, number> = { BOX_35: 0, BOX_50: 0, BOX_70: 0 };
     let totalRevenue = 0;
-    for (const o of orders) {
+    const nonCancelled = orders.filter((o) => o.status !== "cancelled");
+    for (const o of nonCancelled) {
       const pt = o.productType ?? ("BOX_35" as ProductType);
       revenueByProduct[pt] = (revenueByProduct[pt] ?? 0) + (o.totalPrice ?? 0);
       ordersCountByProduct[pt] = (ordersCountByProduct[pt] ?? 0) + 1;
       unitsByProduct[pt] = (unitsByProduct[pt] ?? 0) + (o.totalUnits ?? 0);
       totalRevenue += o.totalPrice ?? 0;
     }
-    const avgRevenuePerOrder = orders.length > 0 ? totalRevenue / orders.length : 0;
+    const avgRevenuePerOrder = nonCancelled.length > 0 ? totalRevenue / nonCancelled.length : 0;
     return { revenueByProduct, ordersCountByProduct, unitsByProduct, totalRevenue, avgRevenuePerOrder };
   }, [orders]);
 
@@ -549,19 +561,20 @@ export default function ManagerPage() {
     .filter(dateFilter)
     .filter(productFilter)
     .filter((o) => {
-      if (showStatus === "all") return o.status !== "delivered";
-      if (showStatus === "delivered") return false;
+      if (showStatus === "cancelled" || showStatus === "delivered") return false;
+      if (showStatus === "all") return o.status !== "delivered" && o.status !== "cancelled";
       return o.status === showStatus;
     })
     .sort(sortFn);
   const historyOrders = orders
     .filter(dateFilter)
     .filter(productFilter)
-    .filter((o) => {
-      if (showStatus === "all") return o.status === "delivered";
-      if (showStatus === "delivered") return o.status === "delivered";
-      return false;
-    })
+    .filter((o) => o.status === "delivered")
+    .sort(sortFn);
+  const cancelledOrders = orders
+    .filter(dateFilter)
+    .filter(productFilter)
+    .filter((o) => o.status === "cancelled")
     .sort(sortFn);
 
   const handleFileUpload = async (orderId: string, file: File, type: AttachmentType) => {
@@ -604,11 +617,13 @@ export default function ManagerPage() {
     new: "חדש",
     confirmed: "אושר",
     delivered: "נמסר",
+    cancelled: "בוטל",
   };
   const statusColors: Record<Order["status"], string> = {
     new: "bg-[#ff4c4c] text-white",
     confirmed: "bg-blue-100 text-blue-800",
     delivered: "bg-green-100 text-green-800",
+    cancelled: "bg-gray-200 text-gray-700",
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -754,6 +769,9 @@ export default function ManagerPage() {
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-800 text-base font-medium">
                 נמסר <strong>{countByStatus.delivered}</strong>
               </span>
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-200 text-gray-700 text-base font-medium">
+                בוטל <strong>{countByStatus.cancelled}</strong>
+              </span>
             </div>
           </div>
         </div>
@@ -786,7 +804,7 @@ export default function ManagerPage() {
             <select
               value={showStatus}
               onChange={(e) =>
-                setShowStatus(e.target.value as "all" | "new" | "confirmed" | "delivered")
+                setShowStatus(e.target.value as "all" | "new" | "confirmed" | "delivered" | "cancelled")
               }
               className="border border-gray-300 rounded-lg px-3 py-2 text-base bg-white text-gray-800"
             >
@@ -794,6 +812,7 @@ export default function ManagerPage() {
               <option value="new">חדש</option>
               <option value="confirmed">אושר</option>
               <option value="delivered">נמסר</option>
+              <option value="cancelled">בוטל</option>
             </select>
           </div>
           <div className="flex items-center gap-2">
@@ -874,6 +893,39 @@ export default function ManagerPage() {
               )}
               {showHistory && historyOrders.length === 0 && (
                 <p className="text-gray-500 text-sm mt-2">אין הזמנות בהיסטוריה.</p>
+              )}
+            </section>
+
+            {/* Cancelled orders */}
+            <section className="mt-10">
+              <button
+                type="button"
+                onClick={() => setShowCancelled(!showCancelled)}
+                className="text-lg font-semibold text-slate-700 hover:text-slate-900"
+              >
+                {showCancelled ? "▼ " : "▶ "}הזמנות שבוטלו ({cancelledOrders.length})
+              </button>
+              {showCancelled && cancelledOrders.length > 0 && (
+                <ul className="space-y-4 mt-3">
+                  {cancelledOrders.map((order) => (
+                    <OrderCard
+                      key={order.id}
+                      order={order}
+                      orderNum={orderIdToNum[order.id]}
+                      statusLabels={statusLabels}
+                      statusColors={statusColors}
+                      updateStatus={updateStatus}
+                      fileDownloadUrl={fileDownloadUrl}
+                      onFileUpload={handleFileUpload}
+                      onRemoveAttachment={handleRemoveAttachment}
+                      uploadingFor={uploadingFor}
+                      onUpdatePrice={handleUpdatePrice}
+                    />
+                  ))}
+                </ul>
+              )}
+              {showCancelled && cancelledOrders.length === 0 && (
+                <p className="text-gray-500 text-sm mt-2">אין הזמנות שבוטלו.</p>
               )}
             </section>
 
