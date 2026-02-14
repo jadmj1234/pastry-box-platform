@@ -30,10 +30,12 @@ export const DEFAULT_DELIVERY_WINDOW = "11:00–14:00";
 
 /**
  * WhatsApp contact number for "Contact us" (e.g. 972501234567 for Israel).
- * Set env NEXT_PUBLIC_WHATSAPP_NUMBER so the customer page can open WhatsApp.
+ * Set env NEXT_PUBLIC_WHATSAPP_NUMBER to override; otherwise uses default below.
  */
+const DEFAULT_WHATSAPP_NUMBER = "972528128476";
+
 export function getWhatsAppNumber(): string {
-  return process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "";
+  return process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? DEFAULT_WHATSAPP_NUMBER;
 }
 
 /** Build WhatsApp chat URL (wa.me). Use only when number is set. */
