@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" fill="none">
+  <rect width="800" height="600" fill="#e8dcc8"/>
+  <text x="400" y="280" font-family="Arial, sans-serif" font-size="32" fill="#6b5344" text-anchor="middle">Mama in the Office</text>
+  <text x="400" y="330" font-family="Arial, sans-serif" font-size="18" fill="#6b5344" text-anchor="middle" opacity="0.7">Taste of home at the office</text>
+  <rect x="300" y="380" width="200" height="50" rx="8" fill="#c4a35a"/>
+  <text x="400" y="412" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle">Order</text>
+</svg>

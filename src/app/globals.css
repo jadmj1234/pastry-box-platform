@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --pastry-cream: #f5f0e8;
+  --pastry-warm: #e8dcc8;
+  --pastry-gold: #c4a35a;
+  --pastry-brown: #6b5344;
+  --pastry-deep: #3d2c29;
+}
+
+body {
+  @apply bg-pastry-cream text-pastry-deep antialiased;
+  font-family: "Times New Roman", Times, serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

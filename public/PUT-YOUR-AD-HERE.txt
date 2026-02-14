@@ -1,0 +1,8 @@
+Product illustration (your pastry tray ad):
+
+1. Save your ad image (the one with the tray of pastries, "מגש מאמא") to this folder.
+2. Rename it to:  ad.png   (or  ad.jpg  if it's a JPEG)
+3. Restart the site: in terminal press Ctrl+C, then run  npm run dev
+4. Refresh the browser (Ctrl+Shift+R)
+
+The image will appear as the main product illustration and on each box option card.
