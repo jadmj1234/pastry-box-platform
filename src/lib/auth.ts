@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 
-export const MANAGER_PASSWORD = "admin1996";
+/** Manager login password – set via env MANAGER_PASSWORD. Never commit the real password to Git. */
+export const MANAGER_PASSWORD =
+  process.env.MANAGER_PASSWORD ?? (process.env.NODE_ENV === "development" ? "admin1996" : "");
 export const COOKIE_NAME = "manager_auth";
 const SESSION_TOKEN = "pastry_manager_secure_session";
 

@@ -81,7 +81,7 @@ Good if you have a Linux server (DigitalOcean, Linode, etc.).
 
 ## After deployment – checklist
 
-- [ ] **Manager password** – Change the default in `src/lib/auth.ts` (or use env var if you add that) and redeploy.
+- [ ] **Manager password** – Set the **environment variable** `MANAGER_PASSWORD` in your host (Railway: Variables; Render: Environment; VPS: export or .env). Do **not** put the password in code or Git. If unset in production, only the dev fallback is used (or login fails); set a strong password on the server.
 - [ ] **Test** – Place a test order from the public URL; log in to `/manager` and confirm you see it and can export Excel.
 - [ ] **HTTPS** – All options above support HTTPS (Railway/Render by default; on VPS use Nginx + Let’s Encrypt).
 - [ ] **Backups** – For Railway/Render/VPS, back up `data/orders.json` and `data/uploads/` regularly (e.g. cron + copy to S3 or another server).
