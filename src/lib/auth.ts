@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server";
 
-/** Manager login password – set via env MANAGER_PASSWORD only. Do not put any password in this file. */
-export const MANAGER_PASSWORD = process.env.MANAGER_PASSWORD ?? "";
+/** Cookie name for manager session. Password is read from process.env.MANAGER_PASSWORD at request time in the login API. */
 export const COOKIE_NAME = "manager_auth";
 const SESSION_TOKEN = "pastry_manager_secure_session";
 

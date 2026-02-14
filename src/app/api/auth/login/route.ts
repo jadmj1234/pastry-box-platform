@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { MANAGER_PASSWORD, getSessionCookie } from "@/lib/auth";
+import { getSessionCookie } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const password = body?.password ?? "";
+    // Read at request time so server env var is used (not inlined at build)
+    const expectedPassword = process.env.MANAGER_PASSWORD ?? "";
 
-    if (password !== MANAGER_PASSWORD) {
+    if (!expectedPassword || password !== expectedPassword) {
       return NextResponse.json({ error: "סיסמה שגויה", ok: false }, { status: 401 });
     }
 
