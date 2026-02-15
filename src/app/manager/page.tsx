@@ -3,6 +3,15 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import Link from "next/link";
 import * as XLSX from "xlsx";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
 import type { Order, OrderAttachment, AttachmentType } from "@/lib/orders";
 import type { ProductType } from "@/lib/settings";
 
@@ -373,6 +382,7 @@ export default function ManagerPage() {
   const [showCancelled, setShowCancelled] = useState(false);
   const [showProduct, setShowProduct] = useState<"all" | ProductType>("all");
   const [showReports, setShowReports] = useState(false);
+  const [showLocationGraph, setShowLocationGraph] = useState(false);
   const [exportingExcel, setExportingExcel] = useState(false);
   const [selectedRange, setSelectedRange] = useState<{ start: string; end: string } | null>(null);
   const [calendarMonth, setCalendarMonth] = useState(() => {
@@ -517,6 +527,20 @@ export default function ManagerPage() {
     }
     const avgRevenuePerOrder = nonCancelled.length > 0 ? totalRevenue / nonCancelled.length : 0;
     return { revenueByProduct, ordersCountByProduct, unitsByProduct, totalRevenue, avgRevenuePerOrder };
+  }, [orders]);
+
+  const locationOrderCounts = useMemo(() => {
+    const nonCancelled = orders.filter((o) => o.status !== "cancelled");
+    const byAddress: Record<string, { count: number; fullAddress: string }> = {};
+    for (const o of nonCancelled) {
+      const addr = (o.deliveryAddress || "").trim() || "(ללא כתובת)";
+      if (!byAddress[addr]) byAddress[addr] = { count: 0, fullAddress: addr };
+      byAddress[addr].count += 1;
+    }
+    return Object.entries(byAddress)
+      .map(([k, v]) => ({ name: k.length > 25 ? k.slice(0, 22) + "…" : k, fullAddress: k, count: v.count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 15);
   }, [orders]);
 
   const handleExportExcel = () => {
@@ -976,6 +1000,56 @@ export default function ManagerPage() {
                   >
                     {exportingExcel ? "מייצא..." : "ייצוא לאקסל"}
                   </button>
+                </div>
+              )}
+            </section>
+
+            {/* Location vs orders graph */}
+            <section className="mt-10">
+              <button
+                type="button"
+                onClick={() => setShowLocationGraph(!showLocationGraph)}
+                className="text-lg font-semibold text-slate-700 hover:text-slate-900"
+              >
+                {showLocationGraph ? "▼ " : "▶ "}גרף הזמנות לפי מיקום
+              </button>
+              {showLocationGraph && (
+                <div className="mt-3 bg-white rounded-xl border border-gray-200 p-4">
+                  <p className="text-sm text-slate-500 mb-3">עד 15 הכתובות עם הכי הרבה הזמנות (ללא בוטלות).</p>
+                  {locationOrderCounts.length === 0 ? (
+                    <p className="text-slate-500 text-sm">אין הזמנות להצגה.</p>
+                  ) : (
+                    <div className="h-[400px] w-full" dir="ltr">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={locationOrderCounts}
+                          layout="vertical"
+                          margin={{ top: 8, right: 24, left: 8, bottom: 8 }}
+                        >
+                          <XAxis type="number" allowDecimals={false} />
+                          <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 11 }} />
+                          <Tooltip
+                            formatter={(value: number) => [value, "הזמנות"]}
+                            content={({ active, payload }) => {
+                              if (!active || !payload?.length) return null;
+                              const row = payload[0].payload;
+                              return (
+                                <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-3 py-2 text-sm">
+                                  <p className="font-medium text-slate-800">{row.fullAddress}</p>
+                                  <p className="text-slate-600">{row.count} הזמנות</p>
+                                </div>
+                              );
+                            }}
+                          />
+                          <Bar dataKey="count" fill="#475569" radius={[0, 4, 4, 0]}>
+                            {locationOrderCounts.map((_, i) => (
+                              <Cell key={i} fill="#475569" />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
                 </div>
               )}
             </section>
