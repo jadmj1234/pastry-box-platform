@@ -30,6 +30,7 @@ function OrderCard({
   onRemoveAttachment,
   uploadingFor,
   onUpdatePrice,
+  onDelete,
 }: {
   order: Order;
   orderNum: number;
