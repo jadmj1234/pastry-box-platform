@@ -82,15 +82,15 @@ function OrderCard({
 </head>
 <body>
   <h1>אמא במשרד</h1>
+  <p><span class="label">שם:</span> ${order.customerName}</p>
+  <p><span class="label">כתובת למשלוח:</span> ${order.deliveryAddress}</p>
   <p><span class="label">מוצר:</span> ${order.unitsPerBox} יח׳</p>
   <p><span class="label">כמות קופסאות:</span> ${order.boxCount}</p>
   <p><span class="label">סה״כ יחידות:</span> ${order.totalUnits}</p>
   <p><span class="label">מחיר לקופסה:</span> ₪${order.pricePerBox}</p>
   <p><span class="label">סה״כ מחיר:</span> ₪${order.totalPrice}</p>
-  <p><span class="label">שם:</span> ${order.customerName}</p>
   <p><span class="label">טלפון:</span> ${order.customerPhone}</p>
   ${order.customerEmail ? `<p><span class="label">אימייל (חשבונית):</span> ${order.customerEmail}</p>` : ""}
-  <p><span class="label">כתובת למשלוח:</span> ${order.deliveryAddress}</p>
   <p><span class="label">תאריך משלוח:</span> ${order.deliveryDate}</p>
   ${order.notes ? `<p><span class="label">הערות:</span> ${order.notes}</p>` : ""}
 </body>
