@@ -182,6 +182,26 @@ export function getOrderById(id: string): Order | null {
   return raw ? normalizeOrder(raw) : null;
 }
 
+/** Permanently delete an order and its uploaded files. Returns true if deleted. */
+export function deleteOrder(id: string): boolean {
+  const orders = readOrders();
+  const index = orders.findIndex((o) => o.id === id);
+  if (index === -1) return false;
+  orders.splice(index, 1);
+  writeOrders(orders);
+  const dir = getOrderUploadDir(id);
+  if (fs.existsSync(dir)) {
+    try {
+      const files = fs.readdirSync(dir);
+      for (const f of files) fs.unlinkSync(path.join(dir, f));
+      fs.rmdirSync(dir);
+    } catch {
+      // ignore
+    }
+  }
+  return true;
+}
+
 const UPLOADS_DIR = path.join(process.cwd(), "data", "uploads");
 
 export function getOrderUploadDir(orderId: string): string {

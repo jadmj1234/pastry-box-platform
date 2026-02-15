@@ -41,6 +41,7 @@ function OrderCard({
   onRemoveAttachment: (orderId: string, storedAs: string) => void;
   uploadingFor: string | null;
   onUpdatePrice?: (orderId: string, pricePerBox: number) => void;
+  onDelete?: (orderId: string) => void;
 }) {
   const [attachType, setAttachType] = useState<AttachmentType>("bit");
   const [statusSelect, setStatusSelect] = useState<Order["status"]>(order.status);
@@ -64,36 +65,22 @@ function OrderCard({
   const productLabel = order.unitsPerBox === 35 ? "35 יח'" : order.unitsPerBox === 50 ? "50 יח'" : "70 יח'";
 
   const handlePrint = () => {
-    const attachmentsList =
-      order.attachments && order.attachments.length > 0
-        ? order.attachments
-            .map(
-              (a) =>
-                `<li>${ATTACHMENT_TYPE_LABELS[a.type]}: ${a.filename}</li>`
-            )
-            .join("")
-        : "<li>אין קבצים</li>";
     const html = `
 <!DOCTYPE html>
 <html dir="rtl" lang="he">
 <head>
   <meta charset="utf-8">
-  <title>הזמנה #${orderNum}</title>
+  <title>אמא במשרד</title>
   <style>
     body { font-family: "Times New Roman", Times, serif; padding: 24px; font-size: 16px; }
     h1 { font-size: 24px; margin-bottom: 16px; }
-    p, li { margin: 8px 0; }
-    ul { margin: 8px 0; padding-right: 24px; }
+    p { margin: 8px 0; }
     .label { font-weight: bold; }
     @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
   </style>
 </head>
 <body>
-  <h1>הזמנה #${orderNum} – אמא במשרד</h1>
-  <p><span class="label">סטטוס:</span> ${statusLabels[order.status]}</p>
-  <p><span class="label">נוצר:</span> ${order.createdAt ? new Date(order.createdAt).toLocaleString("he-IL") : "—"}</p>
-  <p class="label">קבצים מצורפים:</p>
-  <ul>${attachmentsList}</ul>
+  <h1>אמא במשרד</h1>
   <p><span class="label">מוצר:</span> ${order.unitsPerBox} יח׳</p>
   <p><span class="label">כמות קופסאות:</span> ${order.boxCount}</p>
   <p><span class="label">סה״כ יחידות:</span> ${order.totalUnits}</p>
@@ -226,6 +213,20 @@ function OrderCard({
             >
               הדפס
             </button>
+            {onDelete && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm("למחוק את ההזמנה לצמיתות? לא ניתן לשחזר.")) {
+                    onDelete(order.id);
+                  }
+                }}
+                className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-base font-medium"
+                title="מחק הזמנה"
+              >
+                מחק
+              </button>
+            )}
           </div>
         </div>
         <div className="grid gap-2 text-gray-700 text-base">
@@ -440,6 +441,16 @@ export default function ManagerPage() {
       else setError("שגיאה בעדכון מחיר");
     } catch {
       setError("שגיאה בעדכון מחיר");
+    }
+  };
+
+  const handleDeleteOrder = async (id: string) => {
+    try {
+      const res = await fetch(`/api/orders/${id}`, { method: "DELETE" });
+      if (res.ok) await fetchOrders();
+      else setError("שגיאה במחיקת ההזמנה");
+    } catch {
+      setError("שגיאה במחיקת ההזמנה");
     }
   };
 
@@ -920,6 +931,7 @@ export default function ManagerPage() {
                       onRemoveAttachment={handleRemoveAttachment}
                       uploadingFor={uploadingFor}
                       onUpdatePrice={handleUpdatePrice}
+                      onDelete={handleDeleteOrder}
                     />
                   ))}
                 </ul>
